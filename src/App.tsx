@@ -1,26 +1,44 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import {
+  CssBaseline,
+  Container,
+  makeStyles,
+  ThemeProvider,
+} from "@material-ui/core";
+import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
+import { HomeScreen } from "./Screens/HomeScreen";
+import { GameScreen } from "./Screens/GameScreen";
+import { theme } from "./Utils/theme";
+
+const useStyles = makeStyles(theme => ({
+  container: {
+    textAlign: "center",
+
+    paddingRight: 0,
+    paddingLeft: 0,
+  },
+}));
 
 const App: React.FC = () => {
+  const classes = useStyles();
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ThemeProvider theme={theme}>
+      <Router>
+        <CssBaseline />
+        <Container className={classes.container}>
+          <Switch>
+            <Route path="/game">
+              <GameScreen />
+            </Route>
+            <Route path="/">
+              <HomeScreen />
+            </Route>
+          </Switch>
+        </Container>
+      </Router>
+    </ThemeProvider>
   );
-}
+};
 
 export default App;
