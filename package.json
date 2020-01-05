@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@material-ui/core": "4.8.2",
+    "@material-ui/lab": "4.0.0-alpha.38",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
@@ -22,7 +23,9 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "deploy": "now --target production",
+    "deliver": "yarn build && yarn deploy"
   },
   "eslintConfig": {
     "extends": "react-app"

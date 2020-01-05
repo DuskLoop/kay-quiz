@@ -13,7 +13,6 @@ import {
   guessTime,
   IOption,
   currentLevelKeyName,
-  numberOfCorrectSongsKeyName,
 } from "../consts";
 import { BeforeSongScreen } from "./GameScreens/BeforeSongScreen";
 import { PlayingSongScreen } from "./GameScreens/PlayingSongScreen";
@@ -21,10 +20,7 @@ import { GuessScreen } from "./GameScreens/GuessScreen";
 import { AnswerScreen } from "./GameScreens/AnswerScreen";
 import { fadeIn, fadeOut } from "../Utils/AudioUtils";
 import { GameCompletedScreen } from "./GameScreens/GameCompletedScreen";
-import {
-  getCurrentSongNumber,
-  getNumberOfCorrectSongs,
-} from "../Utils/localStorageUtils";
+import { getCurrentSongNumber } from "../Utils/localStorageUtils";
 
 interface IProps {}
 
@@ -45,9 +41,24 @@ const startBeforeSong = (
   guessTimeout: MutableRefObject<NodeJS.Timeout | null>,
 ) => {
   setGameState(GameState.beforeSong);
-  setTimeout(() => {
+
+  audio.src = `songs/${songs[songNumber - 1].fileName}`;
+
+  const canPlayThroughPromise = new Promise(resolve => {
+    audio.oncanplaythrough = () => {
+      resolve();
+    };
+  });
+
+  const waitPromise = new Promise(resolve => {
+    setTimeout(() => {
+      resolve();
+    }, beforeSongTime);
+  });
+
+  Promise.all([canPlayThroughPromise, waitPromise]).then(() => {
     startPlayingSong(setGameState, songNumber, guessTimeout);
-  }, beforeSongTime);
+  });
 };
 
 const startPlayingSong = (
@@ -56,23 +67,26 @@ const startPlayingSong = (
   guessTimeout: MutableRefObject<NodeJS.Timeout | null>,
 ) => {
   setGameState(GameState.playingSong);
-  audio.src = `songs/${songs[songNumber - 1].fileName}`;
 
   fadeIn(audio);
   setTimeout(() => {
-    startGuess(setGameState, guessTimeout);
+    startGuess(setGameState, guessTimeout, songNumber);
   }, playingSongTime);
 };
 
 const startGuess = (
   setGameState: Dispatch<SetStateAction<GameState>>,
   guessTimeout: MutableRefObject<NodeJS.Timeout | null>,
+  songNumber: number,
 ) => {
   setGameState(GameState.guess);
   fadeOut(audio);
 
   guessTimeout.current = setTimeout(() => {
     startAnswer(setGameState);
+
+    const newSongNumber = songNumber + 1;
+    localStorage.setItem(currentLevelKeyName, newSongNumber.toString());
   }, guessTime);
 };
 
@@ -105,23 +119,18 @@ export const GameScreen: React.FC<IProps> = props => {
     }
   }, [guess]);
 
-  const nextSong = (correct: boolean | undefined) => {
+  const nextSong = () => {
     const newSongNumber = songNumber + 1;
     setSongNumber(newSongNumber);
-    localStorage.setItem(currentLevelKeyName, newSongNumber.toString());
-    if (correct) {
-      localStorage.setItem(
-        numberOfCorrectSongsKeyName,
-        (getNumberOfCorrectSongs() + 1).toString(),
-      );
-    }
     setGuess(null);
   };
 
   if (gameState === GameState.beforeSong) {
     return <BeforeSongScreen songNumber={songNumber} />;
   } else if (gameState === GameState.playingSong) {
-    return <PlayingSongScreen setGameState={setGameState} />;
+    return (
+      <PlayingSongScreen setGameState={setGameState} songNumber={songNumber} />
+    );
   } else if (gameState === GameState.guess) {
     return (
       <GuessScreen

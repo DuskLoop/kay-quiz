@@ -4,6 +4,7 @@ import { Typography, makeStyles, Grow } from "@material-ui/core";
 import { GameState } from "../GameScreen";
 
 interface IProps {
+  songNumber: number;
   setGameState: Dispatch<SetStateAction<GameState>>;
 }
 
@@ -45,12 +46,19 @@ export const PlayingSongScreen: React.FC<IProps> = props => {
   }, [time, setGameState]);
 
   return (
-    <div className={classes.container}>
-      <Grow in={true} key={time}>
-        <Typography className={classes.text} color="primary">
-          {time}
+    <>
+      {props.songNumber === 1 && (
+        <Typography color="primary" variant="h4" gutterBottom>
+          Listen
         </Typography>
-      </Grow>
-    </div>
+      )}
+      <div className={classes.container}>
+        <Grow in={true} key={time}>
+          <Typography className={classes.text} color="primary">
+            {time}
+          </Typography>
+        </Grow>
+      </div>
+    </>
   );
 };

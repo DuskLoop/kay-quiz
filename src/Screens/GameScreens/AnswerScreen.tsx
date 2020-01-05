@@ -6,7 +6,7 @@ import YouTube from "react-youtube";
 interface IProps {
   guess: IOption | null;
   songNumber: number;
-  nextSong: (correct: boolean | undefined) => void;
+  nextSong: () => void;
 }
 
 const useStyles = makeStyles(theme => ({
@@ -42,12 +42,16 @@ export const AnswerScreen: React.FC<IProps> = props => {
 
   return (
     <>
-      {props.guess && (
-        <Typography variant="h3" color="primary">
-          {props.guess.correct ? "Correct!" : "Wrong"}
-        </Typography>
-      )}
-      <Typography color="primary">{`${song.artist} - ${song.name}`}</Typography>
+      <Typography variant="h3" color="primary">
+        {props.guess == null
+          ? "Timed out"
+          : props.guess.correct
+          ? "Correct!"
+          : "Wrong"}
+      </Typography>
+      <Typography color="primary">{`${
+        props.guess == null || !props.guess.correct ? "Correct answer is: " : ""
+      }${song.artist} - ${song.name}`}</Typography>
       <div
         className={classes.videoContainer}
         ref={videoContainerRef}
@@ -73,7 +77,7 @@ export const AnswerScreen: React.FC<IProps> = props => {
       </div>
       <Button
         onClick={() => {
-          props.nextSong(props.guess?.correct);
+          props.nextSong();
         }}
         variant="outlined"
         color="primary"
