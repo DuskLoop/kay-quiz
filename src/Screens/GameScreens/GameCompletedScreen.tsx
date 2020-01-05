@@ -4,9 +4,11 @@ import { getNumberOfCorrectSongs } from "../../Utils/localStorageUtils";
 import { currentLevelKeyName, numberOfCorrectSongsKeyName } from "../../consts";
 import { Facebook } from "../../Icons/Facebook";
 import Rating from "@material-ui/lab/Rating";
+import { AppState } from "../../App";
 
 interface IProps {
   setSongNumber: Dispatch<SetStateAction<number>>;
+  setAppState: Dispatch<SetStateAction<AppState>>;
 }
 
 const useStyles = makeStyles(theme => ({
@@ -97,6 +99,16 @@ export const GameCompletedScreen: React.FC<IProps> = props => {
           className={classes.button}
         >
           Play again
+        </Button>
+        <Button
+          onClick={() => {
+            props.setAppState(AppState.Home);
+          }}
+          color="primary"
+          size="large"
+          className={classes.button}
+        >
+          Home
         </Button>
       </div>
     </>

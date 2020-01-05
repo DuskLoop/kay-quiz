@@ -21,8 +21,11 @@ import { AnswerScreen } from "./GameScreens/AnswerScreen";
 import { fadeIn, fadeOut } from "../Utils/AudioUtils";
 import { GameCompletedScreen } from "./GameScreens/GameCompletedScreen";
 import { getCurrentSongNumber } from "../Utils/localStorageUtils";
+import { AppState } from "../App";
 
-interface IProps {}
+interface IProps {
+  setAppState: Dispatch<SetStateAction<AppState>>;
+}
 
 export enum GameState {
   beforeSong,
@@ -145,7 +148,12 @@ export const GameScreen: React.FC<IProps> = props => {
       <AnswerScreen nextSong={nextSong} songNumber={songNumber} guess={guess} />
     );
   } else if (gameState === GameState.gameCompleted) {
-    return <GameCompletedScreen setSongNumber={setSongNumber} />;
+    return (
+      <GameCompletedScreen
+        setSongNumber={setSongNumber}
+        setAppState={props.setAppState}
+      />
+    );
   } else {
     throw Error(`Unknown game state: ${gameState}`);
   }

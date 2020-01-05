@@ -1,8 +1,10 @@
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import { Button, Typography, makeStyles } from "@material-ui/core";
-import { useHistory } from "react-router-dom";
+import { AppState } from "../App";
 
-interface IProps {}
+interface IProps {
+  setAppState: Dispatch<SetStateAction<AppState>>;
+}
 
 const useStyles = makeStyles(theme => ({
   titleText: {
@@ -14,8 +16,6 @@ const useStyles = makeStyles(theme => ({
 export const HomeScreen: React.FunctionComponent<IProps> = props => {
   const classes = useStyles();
 
-  const history = useHistory();
-
   return (
     <>
       <div>
@@ -25,7 +25,7 @@ export const HomeScreen: React.FunctionComponent<IProps> = props => {
       </div>
       <Button
         onClick={() => {
-          history.push("/game");
+          props.setAppState(AppState.Game);
         }}
         variant="outlined"
         color="primary"

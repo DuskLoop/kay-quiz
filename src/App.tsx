@@ -1,11 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   CssBaseline,
   Container,
   makeStyles,
   ThemeProvider,
 } from "@material-ui/core";
-import { BrowserRouter as Router, Switch, Route } from "react-router-dom";
 import { HomeScreen } from "./Screens/HomeScreen";
 import { GameScreen } from "./Screens/GameScreen";
 import { theme } from "./Utils/theme";
@@ -19,24 +18,22 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+export enum AppState {
+  Home,
+  Game,
+}
+
 const App: React.FC = () => {
+  const [appState, setAppState] = useState<AppState>(AppState.Home);
   const classes = useStyles();
 
   return (
     <ThemeProvider theme={theme}>
-      <Router>
-        <CssBaseline />
-        <Container className={classes.container}>
-          <Switch>
-            <Route path="/game">
-              <GameScreen />
-            </Route>
-            <Route path="/">
-              <HomeScreen />
-            </Route>
-          </Switch>
-        </Container>
-      </Router>
+      <CssBaseline />
+      <Container className={classes.container}>
+        {appState === AppState.Game && <GameScreen setAppState={setAppState} />}
+        {appState === AppState.Home && <HomeScreen setAppState={setAppState} />}
+      </Container>
     </ThemeProvider>
   );
 };
