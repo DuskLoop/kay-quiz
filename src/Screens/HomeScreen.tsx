@@ -25,7 +25,8 @@ export const HomeScreen: React.FunctionComponent<IProps> = props => {
       </div>
       <Button
         onClick={() => {
-          props.setAppState(AppState.Game);
+          // props.setAppState(AppState.Game);
+          throw new Error("Hej");
         }}
         variant="outlined"
         color="primary"
