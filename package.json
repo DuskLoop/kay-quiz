@@ -21,12 +21,12 @@
     "typescript": "3.7.2"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build && yarn cap copy",
+    "start": "cross-env REACT_APP_VERSION=$npm_package_version react-scripts start",
+    "build": "cross-env REACT_APP_VERSION=$npm_package_version react-scripts build && yarn cap copy",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "deploy": "now --target production",
-    "deliver": "yarn build && yarn deploy"
+    "deliver": "node scripts/deliver"
   },
   "eslintConfig": {
     "extends": "react-app"
@@ -46,6 +46,9 @@
   "devDependencies": {
     "@capacitor/cli": "1.4.0",
     "@capacitor/core": "1.4.0",
-    "@types/react-youtube": "7.6.2"
+    "@sentry/browser": "5.10.2",
+    "@sentry/cli": "1.49.0",
+    "@types/react-youtube": "7.6.2",
+    "cross-env": "6.0.3"
   }
 }

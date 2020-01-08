@@ -1,0 +1,6 @@
+[defaults]
+project=kay-quiz
+org=daniel-hildesson
+
+[auth]
+token=0ff100a16f2f4df39bbf160a65d40c0b680448f27af14d17817fdba07886f63d
