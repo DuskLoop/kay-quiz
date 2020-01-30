@@ -1,22 +1,23 @@
-import React, { Dispatch, SetStateAction } from "react";
-import { Typography, makeStyles, Button } from "@material-ui/core";
-import { getNumberOfCorrectSongs } from "../../Utils/localStorageUtils";
-import { currentLevelKeyName, numberOfCorrectSongsKeyName } from "../../consts";
-import { Facebook } from "../../Icons/Facebook";
-import Rating from "@material-ui/lab/Rating";
-import { AppState } from "../../App";
+import React, { Dispatch, SetStateAction } from 'react';
+import { Typography, makeStyles, Button } from '@material-ui/core';
+import { getNumberOfCorrectSongs } from '../../Utils/localStorageUtils';
+import { currentLevelKeyName, numberOfCorrectSongsKeyName } from '../../consts';
+import { Facebook } from '../../Icons/Facebook';
+import Rating from '@material-ui/lab/Rating';
+import { AppState } from '../../App';
+import { Action } from '../GameScreen';
 
 interface IProps {
-  setSongNumber: Dispatch<SetStateAction<number>>;
+  dispatch: Dispatch<Action>;
   setAppState: Dispatch<SetStateAction<AppState>>;
 }
 
 const useStyles = makeStyles(theme => ({
   gradeContainer: {
     border: `1px solid ${theme.palette.primary.main}`,
-    borderRadius: "50%",
-    width: "178px",
-    display: "inline-block",
+    borderRadius: '50%',
+    width: '178px',
+    display: 'inline-block',
   },
   gradeText: {
     fontSize: 96,
@@ -35,9 +36,9 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(0),
   },
   buttonsContainer: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
   },
   rating: {
     marginBottom: theme.spacing(3),
@@ -74,8 +75,8 @@ export const GameCompletedScreen: React.FC<IProps> = props => {
           onClick={() => {
             window.FB.ui(
               {
-                method: "share",
-                href: "https://kayquiz.com/",
+                method: 'share',
+                href: 'https://kayquiz.com/',
                 quote: `I just scored ${getNumberOfCorrectSongs()}/20 in Kay Quiz!`,
               },
               function(response: any) {},
@@ -90,9 +91,9 @@ export const GameCompletedScreen: React.FC<IProps> = props => {
         </Button>
         <Button
           onClick={() => {
-            localStorage.setItem(currentLevelKeyName, "1");
-            localStorage.setItem(numberOfCorrectSongsKeyName, "0");
-            props.setSongNumber(1);
+            localStorage.setItem(currentLevelKeyName, '1');
+            localStorage.setItem(numberOfCorrectSongsKeyName, '0');
+            props.dispatch({ type: 'restart' });
           }}
           color="primary"
           size="large"

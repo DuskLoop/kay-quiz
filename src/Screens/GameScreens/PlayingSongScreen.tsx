@@ -1,19 +1,17 @@
-import React, { useState, useEffect, Dispatch, SetStateAction } from "react";
-import { playingSongTime } from "../../consts";
-import { Typography, makeStyles, Grow } from "@material-ui/core";
-import { GameState } from "../GameScreen";
+import React, { useState, useEffect } from 'react';
+import { playingSongTime } from '../../consts';
+import { Typography, makeStyles, Grow } from '@material-ui/core';
 
 interface IProps {
   songNumber: number;
-  setGameState: Dispatch<SetStateAction<GameState>>;
 }
 
 const useStyles = makeStyles(theme => ({
   container: {
     border: `1px solid ${theme.palette.primary.main}`,
-    borderRadius: "50%",
-    width: "218px",
-    display: "inline-block",
+    borderRadius: '50%',
+    width: '218px',
+    display: 'inline-block',
   },
   text: {
     fontSize: 144,
@@ -36,14 +34,6 @@ export const PlayingSongScreen: React.FC<IProps> = props => {
       clearInterval(interval);
     };
   }, [time]);
-
-  const { setGameState } = props;
-
-  useEffect(() => {
-    if (time <= 0) {
-      setGameState(GameState.guess);
-    }
-  }, [time, setGameState]);
 
   return (
     <>

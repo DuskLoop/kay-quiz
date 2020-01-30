@@ -42,5 +42,5 @@ export const fadeOut = (audioEl: HTMLAudioElement): void => {
 
 export const fadeIn = (audioEl: HTMLAudioElement): void => {
   audioEl.play();
-  adjustVolume(audioEl, 0.4, { duration: 500 });
+  adjustVolume(audioEl, 1, { duration: 500 });
 };

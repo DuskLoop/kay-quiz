@@ -1,11 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  Dispatch,
-  SetStateAction,
-  MutableRefObject,
-} from "react";
+import React, { useEffect, Dispatch, SetStateAction, useReducer } from 'react';
 import {
   beforeSongTime,
   songs,
@@ -13,15 +6,19 @@ import {
   guessTime,
   IOption,
   currentLevelKeyName,
-} from "../consts";
-import { BeforeSongScreen } from "./GameScreens/BeforeSongScreen";
-import { PlayingSongScreen } from "./GameScreens/PlayingSongScreen";
-import { GuessScreen } from "./GameScreens/GuessScreen";
-import { AnswerScreen } from "./GameScreens/AnswerScreen";
-import { fadeIn, fadeOut } from "../Utils/AudioUtils";
-import { GameCompletedScreen } from "./GameScreens/GameCompletedScreen";
-import { getCurrentSongNumber } from "../Utils/localStorageUtils";
-import { AppState } from "../App";
+  numberOfCorrectSongsKeyName,
+} from '../consts';
+import { BeforeSongScreen } from './GameScreens/BeforeSongScreen';
+import { PlayingSongScreen } from './GameScreens/PlayingSongScreen';
+import { GuessScreen } from './GameScreens/GuessScreen';
+import { AnswerScreen } from './GameScreens/AnswerScreen';
+import { fadeIn, fadeOut } from '../Utils/AudioUtils';
+import { GameCompletedScreen } from './GameScreens/GameCompletedScreen';
+import {
+  getCurrentSongNumber,
+  getNumberOfCorrectSongs,
+} from '../Utils/localStorageUtils';
+import { AppState } from '../App';
 
 interface IProps {
   setAppState: Dispatch<SetStateAction<AppState>>;
@@ -35,16 +32,115 @@ export enum GameState {
   gameCompleted,
 }
 
+interface IGameScreenState {
+  gameState: GameState;
+  songNumber: number;
+  guess: IOption | null;
+}
+
+export type Action =
+  | { type: 'playSong' }
+  | { type: 'endSong' }
+  | { type: 'guess'; guess: IOption }
+  | { type: 'timeOut' }
+  | { type: 'nextSong' }
+  | { type: 'restart' };
+
+const initializer = (): IGameScreenState => {
+  const songNumber = getCurrentSongNumber();
+
+  if (songNumber > songs.length) {
+    return {
+      gameState: GameState.gameCompleted,
+      guess: null,
+      songNumber: songNumber,
+    };
+  } else {
+    startBeforeSong(songNumber).then(() => {
+      dispatchGlobal({ type: 'playSong' });
+    });
+
+    return {
+      gameState: GameState.beforeSong,
+      guess: null,
+      songNumber: songNumber,
+    };
+  }
+};
+
+const reducer = (state: IGameScreenState, action: Action): IGameScreenState => {
+  if (action.type === 'guess') {
+    const newSongNumber = state.songNumber + 1;
+
+    localStorage.setItem(currentLevelKeyName, newSongNumber.toString());
+    if (action.guess.correct) {
+      localStorage.setItem(
+        numberOfCorrectSongsKeyName,
+        (getNumberOfCorrectSongs() + 1).toString(),
+      );
+    }
+
+    if (guessTimerGlobal) {
+      clearTimeout(guessTimerGlobal);
+    }
+
+    return { ...state, gameState: GameState.answer, guess: action.guess };
+  } else if (action.type === 'playSong') {
+    fadeIn(audio);
+    setTimeout(() => {
+      dispatchGlobal({ type: 'endSong' });
+    }, playingSongTime);
+
+    return { ...state, gameState: GameState.playingSong };
+  } else if (action.type === 'endSong') {
+    fadeOut(audio);
+
+    guessTimerGlobal = setTimeout(() => {
+      dispatchGlobal({ type: 'timeOut' });
+
+      const newSongNumber = state.songNumber + 1;
+      localStorage.setItem(currentLevelKeyName, newSongNumber.toString());
+    }, guessTime);
+
+    return { ...state, gameState: GameState.guess };
+  } else if (action.type === 'timeOut') {
+    return { ...state, gameState: GameState.answer, guess: null };
+  } else if (action.type === 'nextSong') {
+    const nextSongNumber = state.songNumber + 1;
+
+    if (nextSongNumber > songs.length) {
+      return {
+        ...state,
+        gameState: GameState.gameCompleted,
+        songNumber: nextSongNumber,
+      };
+    } else {
+      startBeforeSong(nextSongNumber).then(() => {
+        dispatchGlobal({ type: 'playSong' });
+      });
+
+      return {
+        ...state,
+        songNumber: nextSongNumber,
+        gameState: GameState.beforeSong,
+        guess: null,
+      };
+    }
+  } else if (action.type === 'restart') {
+    startBeforeSong(1).then(() => {
+      dispatchGlobal({ type: 'playSong' });
+    });
+
+    return { songNumber: 1, gameState: GameState.beforeSong, guess: null };
+  } else {
+    throw Error(`Unknown action: ${action}`);
+  }
+};
+
 const audio = new Audio();
 audio.volume = 0;
 
-const startBeforeSong = (
-  setGameState: Dispatch<SetStateAction<GameState>>,
-  songNumber: number,
-  guessTimeout: MutableRefObject<NodeJS.Timeout | null>,
-) => {
-  setGameState(GameState.beforeSong);
-
+const startBeforeSong = (songNumber: number) => {
   audio.src = `songs/${songs[songNumber - 1].fileName}`;
 
   const canPlayThroughPromise = new Promise(resolve => {
@@ -59,98 +155,50 @@ const startBeforeSong = (
     }, beforeSongTime);
   });
 
-  Promise.all([canPlayThroughPromise, waitPromise]).then(() => {
-    startPlayingSong(setGameState, songNumber, guessTimeout);
-  });
+  return Promise.all([canPlayThroughPromise, waitPromise]);
 };
 
-const startPlayingSong = (
-  setGameState: Dispatch<SetStateAction<GameState>>,
-  songNumber: number,
-  guessTimeout: MutableRefObject<NodeJS.Timeout | null>,
-) => {
-  setGameState(GameState.playingSong);
-
-  fadeIn(audio);
-  setTimeout(() => {
-    startGuess(setGameState, guessTimeout, songNumber);
-  }, playingSongTime);
+let dispatchGlobal: Dispatch<Action> = () => {
+  console.log('Dispatch not set');
 };
 
-const startGuess = (
-  setGameState: Dispatch<SetStateAction<GameState>>,
-  guessTimeout: MutableRefObject<NodeJS.Timeout | null>,
-  songNumber: number,
-) => {
-  setGameState(GameState.guess);
-  fadeOut(audio);
-
-  guessTimeout.current = setTimeout(() => {
-    startAnswer(setGameState);
-
-    const newSongNumber = songNumber + 1;
-    localStorage.setItem(currentLevelKeyName, newSongNumber.toString());
-  }, guessTime);
-};
-
-const startAnswer = (setGameState: Dispatch<SetStateAction<GameState>>) => {
-  setGameState(GameState.answer);
-};
+let guessTimerGlobal: NodeJS.Timeout | undefined;
 
 export const GameScreen: React.FC<IProps> = props => {
-  const [songNumber, setSongNumber] = useState<number>(getCurrentSongNumber());
-  const [gameState, setGameState] = useState<GameState>(GameState.beforeSong);
-  const [guess, setGuess] = useState<IOption | null>(null);
+  const [{ gameState, guess, songNumber }, dispatch] = useReducer(
+    reducer,
+    null,
+    initializer,
+  );
 
-  const guessTimeout = useRef<NodeJS.Timeout | null>(null);
+  dispatchGlobal = dispatch;
 
   useEffect(() => {
-    if (songNumber > songs.length) {
-      setGameState(GameState.gameCompleted);
-    } else {
-      startBeforeSong(setGameState, songNumber, guessTimeout);
-    }
-
     return () => {
       fadeOut(audio);
     };
-  }, [songNumber, setGameState]);
-
-  useEffect(() => {
-    if (guess) {
-      startAnswer(setGameState);
-    }
-  }, [guess]);
-
-  const nextSong = () => {
-    const newSongNumber = songNumber + 1;
-    setSongNumber(newSongNumber);
-    setGuess(null);
-  };
+  }, []);
 
   if (gameState === GameState.beforeSong) {
     return <BeforeSongScreen songNumber={songNumber} />;
   } else if (gameState === GameState.playingSong) {
-    return (
-      <PlayingSongScreen setGameState={setGameState} songNumber={songNumber} />
-    );
+    return <PlayingSongScreen songNumber={songNumber} />;
   } else if (gameState === GameState.guess) {
     return (
       <GuessScreen
         songNumber={songNumber}
-        setGuess={setGuess}
-        setGameState={setGameState}
-        guessTimeout={guessTimeout}
+        dispatch={dispatch}
+        guessTimeout={guessTimerGlobal}
       />
     );
   } else if (gameState === GameState.answer) {
     return (
-      <AnswerScreen nextSong={nextSong} songNumber={songNumber} guess={guess} />
+      <AnswerScreen dispath={dispatch} songNumber={songNumber} guess={guess} />
     );
   } else if (gameState === GameState.gameCompleted) {
     return (
       <GameCompletedScreen
-        setSongNumber={setSongNumber}
+        dispatch={dispatch}
         setAppState={props.setAppState}
       />
     );
