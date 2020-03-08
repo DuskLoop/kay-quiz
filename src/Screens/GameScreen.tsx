@@ -142,6 +142,7 @@ audio.volume = 0;
 
 const startBeforeSong = (songNumber: number) => {
   audio.src = `songs/${songs[songNumber - 1].fileName}`;
+  audio.load();
 
   const canPlayThroughPromise = new Promise(resolve => {
     audio.oncanplaythrough = () => {
