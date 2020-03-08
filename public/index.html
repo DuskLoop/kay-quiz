@@ -32,9 +32,10 @@
       body {
         height: 100%;
         background-image: linear-gradient(to bottom right, #0065db, #0065dbcc);
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
+      }
+      #root {
+        overflow-y: auto;
+        height: 100%;
       }
     </style>
 
@@ -53,10 +54,10 @@
     <script>
       window.fbAsyncInit = function() {
         FB.init({
-          appId: "639507910183169",
+          appId: '639507910183169',
           autoLogAppEvents: true,
           xfbml: true,
-          version: "v5.0",
+          version: 'v5.0',
         });
       };
     </script>
